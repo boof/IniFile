@@ -1,5 +1,5 @@
 class IniFile
-  VERSION = [1,0,0]
+  VERSION = [1,0,3]
   TODO = {
     :strip_inline_comments => true,
     :unescape_values => true,
@@ -11,6 +11,7 @@ class IniFile
   DEFAULT_COMMENT_CHAR      = ';'
   DEFAULT_VALUE_DELIMITER   = '='
   DEFAULT_SECTION_DELIMITER = '.'
+  DEFAULT_SPACER            = '  '
 
   DUPLICATION_HANDLER = {
     :overwrite  => proc { |o, n| n },
@@ -68,13 +69,15 @@ class IniFile
   #
   # Valid options are (with defaults):
   #   :preserve_quotes => true
+  #   :spacer => '  ' # => Indentation string
   #   :vdelim => '='  # => Value delimiter
   #   :sdelim => '.'  # => Section delimiter
   def self.dump(hash, out = '', options = {})
     pq        = options.fetch :preserve_quotes, true
     indent    = options[:indent] || 0
-    vdelim    = options[:vdelim] || DEFAULT_VALUE_DELIMITER
-    sdelim    = options[:sdelim] || DEFAULT_SECTION_DELIMITER
+    vdelim    = options[:vdelim] ||= DEFAULT_VALUE_DELIMITER
+    sdelim    = options[:sdelim] ||= DEFAULT_SECTION_DELIMITER
+    spacer    = options[:spacer] ||= DEFAULT_SPACER
     sections  = Array options[:sections]
     nested    = {}
 
@@ -83,15 +86,15 @@ class IniFile
       else
         # quote when quoted to preserve quotes.
         value = "'#{ value }'" if pq and String === value and value[RE_QUOTED]
-        out << "#{ ' ' * indent }#{ key } #{ vdelim } #{ value }\n"
+        out << "#{ spacer * indent }#{ key } #{ vdelim } #{ value }\n"
       end
     end
 
     nested.each do |key, value|
       s = sections.map << key
-      o = options.merge :indent => indent + 2, :sections => s
+      o = options.merge :indent => indent + 1, :sections => s
 
-      dump value, out << "#{ ' ' * indent }[#{ s * sdelim }]\n", o
+      dump value, out << "#{ spacer * indent }[#{ s * sdelim }]\n", o
     end
 
     out
@@ -112,6 +115,9 @@ class IniFile
         else
           key, value = line.split(@vdelim, 2).each { |v| v.strip! }
           value = typecast value if @typecast
+
+          # remove quotes at the beginning and the end of value
+          value.gsub!(RE_QUOTED, '') if !@typecast or String === value
 
           # TODO[:strip_inline_comments]
           # TODO[:unescape_values]
@@ -144,8 +150,7 @@ class IniFile
       when RE_INTEGER; Integer(value)
       when RE_FLOAT; Float(value)
       else
-        # remove quotes at the beginning and the end of value
-        value.gsub(RE_QUOTED, '')
+        value
       end
     end
 

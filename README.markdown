@@ -11,6 +11,7 @@ Features:
   * support for number sign comments (default is ';')
   * handlers for duplicate names (overwrite, concat and to\_array)
   * different section delimiters (default is '.') for hierarchy
+  * customizable intendation string (default: '  ')
 
 Behaviour:
 ----------
@@ -22,7 +23,7 @@ Behaviour:
   * duplicate names by default raises an IndexError
 
 If you want to preserve the format of your .ini file try
-[antw's iniparse](http://github.com/antw/iniparse/).
+[Anthony Williams's iniparse](http://github.com/antw/iniparse/).
 
 ### Reading
 
