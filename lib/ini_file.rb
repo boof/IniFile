@@ -22,6 +22,7 @@ class IniFile
 
   RE_INTEGER  = /^\d+$/
   RE_FLOAT    = /^\d*\.\d+$/
+  RE_QUOTED   = /(?:^['"]|['"]$)/
 
   def initialize(enumerable, parse_opts) #:nodoc:
     @enumerable   = enumerable
@@ -66,9 +67,11 @@ class IniFile
   # Dumps <tt>hash</tt> to <tt>out</tt> and returns <tt>out</tt>.
   #
   # Valid options are (with defaults):
+  #   :preserve_quotes => true
   #   :vdelim => '='  # => Value delimiter
   #   :sdelim => '.'  # => Section delimiter
   def self.dump(hash, out = '', options = {})
+    pq        = options.fetch :preserve_quotes, true
     indent    = options[:indent] || 0
     vdelim    = options[:vdelim] || DEFAULT_VALUE_DELIMITER
     sdelim    = options[:sdelim] || DEFAULT_SECTION_DELIMITER
@@ -78,8 +81,9 @@ class IniFile
     hash.each do |key, value|
       if Hash === value then nested[key] = value
       else
-        out << "#{ ' ' * indent }"
-        out << "#{ key } #{ vdelim } #{ value }\n"
+        # quote when quoted to preserve quotes.
+        value = "'#{ value }'" if pq and String === value and value[RE_QUOTED]
+        out << "#{ ' ' * indent }#{ key } #{ vdelim } #{ value }\n"
       end
     end
 
@@ -141,7 +145,7 @@ class IniFile
       when RE_FLOAT; Float(value)
       else
         # remove quotes at the beginning and the end of value
-        value.gsub(/(?:^['"]|['"]$)/, '')
+        value.gsub(RE_QUOTED, '')
       end
     end
 
