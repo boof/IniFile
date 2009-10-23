@@ -56,10 +56,12 @@ class IniFile
   #   :typecast => true # => typecast numeric values to Integer or Float
   def self.parse(object, parse_opts = {})
     enumerable = case object
-        when String: object.split("\n")
-        when IO: object
+        when String
+          object.split $/
+        when IO
+          object
         else
-          raise ArgumentError
+          raise Argumenterror, "expected instance of String or IO, got #{ object.inspect }"
         end
     instance = new enumerable, parse_opts
 
