@@ -61,7 +61,7 @@ class IniFile
         when IO
           object
         else
-          raise Argumenterror, "expected instance of String or IO, got #{ object.inspect }"
+          raise ArgumentError, "expected instance of String or IO, got #{ object.inspect }"
         end
     instance = new enumerable, parse_opts
 
